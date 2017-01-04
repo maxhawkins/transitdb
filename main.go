@@ -45,9 +45,8 @@ type Offer struct {
 	OriginAirport      string `json:"originAirport,omitempty"`
 	DestinationAirport string `json:"destinationAirport,omitempty"`
 
-	Cost        int    `json:"cost"`
-	Description string `json:"description"`
-	Source      string `json:"source"`
+	Cost   int    `json:"cost"`
+	Source string `json:"source"`
 
 	AvailableFrom Date `json:"availableFrom,omitempty"`
 	AvailableTo   Date `json:"availableTo,omitempty"`

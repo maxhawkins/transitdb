@@ -53,17 +53,16 @@ func (s SaveOfferCommand) Exec(e sqlx.Execer) error {
 
 	_, err := e.Exec(`
 			INSERT INTO offers
-			(origin_id, dest_id, cost, name, source, start_time, end_time, created_at, expires_at)
+			(origin_id, dest_id, cost, source, start_time, end_time, created_at, expires_at)
 			VALUES
 			(
 				(SELECT place_id FROM places WHERE iata_code = $1),
 				(SELECT place_id FROM places WHERE iata_code = $2),
-				$3, $4, $5, $6, $7, $8, $9
+				$3, $4, $5, $6, $7, $8
 			)`,
 		o.OriginAirport,
 		o.DestinationAirport,
 		o.Cost,
-		o.Description,
 		o.Source,
 		availableFrom,
 		availableTo,
@@ -195,7 +194,7 @@ next_min_offer AS (
 
 -- Print them all, starting with the cheapest
 --
-SELECT cost, offers.name, dest.name, dest.country, start_time AS cheapest_date
+SELECT cost, dest.name, dest.country, start_time AS cheapest_date
 FROM next_min_offer
      JOIN offers USING (origin_id, dest_id, cost, start_time)
      JOIN places AS dest
@@ -218,7 +217,6 @@ type GetCheapestQuery struct {
 
 type GetCheapestResult struct {
 	Cost         int
-	Name         string
 	Dest         string
 	DestCountry  string
 	CheapestDate time.Time
@@ -242,7 +240,6 @@ func (q GetCheapestQuery) Exec(queryer sqlx.Queryer) ([]GetCheapestResult, error
 
 		err = rows.Scan(
 			&res.Cost,
-			&res.Name,
 			&res.Dest, &res.DestCountry,
 			&res.CheapestDate)
 		if err != nil {
@@ -266,7 +263,6 @@ places (
     latitude   DECIMAL       NOT NULL,
     longitude  DECIMAL       NOT NULL,
     country    VARCHAR(2)    NOT NULL,
-    name       VARCHAR(100)  NOT NULL,
     iata_code  VARCHAR(3)
 );
 
@@ -281,7 +277,6 @@ offers (
     dest_id     INT          NOT NULL
                              REFERENCES places(place_id),
     cost        DECIMAL      NOT NULL,
-    name        VARCHAR(40), 
     source      VARCHAR(20)  NOT NULL,
     start_time  DATE         NOT NULL,
     end_time    DATE,
