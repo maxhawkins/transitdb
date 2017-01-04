@@ -763,6 +763,7 @@ VALUES
 	('EYK', 'RU', 63.706467, 66.663903, 'Beloyarskiy Airport'),
 	('EYP', 'CO', 4.733390, -72.249960, 'El Yopal Airport'),
 	('EYW', 'US', 24.555059, -81.779987, 'Key West International Airport'),
+	('EZE', 'AR', -34.822222, -58.535833, 'Ministro Pistarini International Airport'),
 	('EZS', 'TR', 38.674816, 39.222515, 'Elaz?? Airport'),
 	('EZV', 'RU', 63.936532, 65.047903, 'Berezovo Airport'),
 	('FAC', 'PF', -16.687138, -145.295689, 'Faaite Airport'),
