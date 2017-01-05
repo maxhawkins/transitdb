@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import 'google/protobuf/timestamp.proto';
+
+message offer {
+	string origin = 1;
+	string destination = 2;
+	int32 cost = 3;
+	google.protobuf.Timestamp start_time = 4;
+	google.protobuf.Timestamp end_time = 5;
+	google.protobuf.Timestamp created_at = 6;
+}

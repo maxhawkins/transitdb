@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -13,9 +14,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+
+	transitpb "github.com/maxhawkins/transitdb/proto"
 )
 
 type Date struct {
@@ -182,6 +187,104 @@ func (a *API) HandleGetCheapest(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func (a *API) HandleExport(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	rows, err := a.db.Query(`
+		SELECT origin.name, dest.name, cost, start_time, end_time, created_at
+		FROM offers
+		JOIN places AS origin ON origin.place_id = offers.origin_id
+		JOIN places AS dest ON dest.place_id = offers.origin_id
+	`)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "[error]", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", `attachment; filename="offers.bin"`)
+
+	for rows.Next() {
+		if err := ctx.Err(); err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		offer := &transitpb.Offer{}
+
+		var startTime time.Time
+		var endTime *time.Time
+		var createdAt time.Time
+
+		err = rows.Scan(
+			&offer.Origin,
+			&offer.Destination,
+			&offer.Cost,
+			&startTime,
+			&endTime,
+			&createdAt)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		startTimePb, err := ptypes.TimestampProto(startTime)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		offer.StartTime = startTimePb
+
+		if endTime != nil {
+			endTimePb, err := ptypes.TimestampProto(*endTime)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "[error]", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			offer.EndTime = endTimePb
+		}
+
+		createdAtPb, err := ptypes.TimestampProto(createdAt)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		offer.CreatedAt = createdAtPb
+
+		data, err := proto.Marshal(offer)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		size := uint32(len(data))
+		if err := binary.Write(w, binary.BigEndian, size); err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if _, err := w.Write(data); err != nil {
+			fmt.Fprintln(os.Stderr, "[error]", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "[error]", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func main() {
 	var (
 		dbPath = flag.String("db", "postgres://localhost/transitdb?sslmode=disable", "db location")
@@ -203,6 +306,8 @@ func main() {
 	m := mux.NewRouter()
 	m.HandleFunc("/offers", api.HandleAddOffers).Methods("POST")
 	m.HandleFunc("/cheapest", api.HandleGetCheapestRoute).Methods("GET")
+
+	m.Handle("/export", handlers.CompressHandler(http.HandlerFunc(api.HandleExport))).Methods("GET")
 
 	var handler http.Handler
 	handler = handlers.LoggingHandler(os.Stderr, m)
