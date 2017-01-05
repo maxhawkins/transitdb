@@ -306,8 +306,7 @@ func main() {
 	m := mux.NewRouter()
 	m.HandleFunc("/offers", api.HandleAddOffers).Methods("POST")
 	m.HandleFunc("/cheapest", api.HandleGetCheapestRoute).Methods("GET")
-
-	m.Handle("/export", handlers.CompressHandler(http.HandlerFunc(api.HandleExport))).Methods("GET")
+	m.HandleFunc("/export", api.HandleExport).Methods("GET")
 
 	var handler http.Handler
 	handler = handlers.LoggingHandler(os.Stderr, m)
