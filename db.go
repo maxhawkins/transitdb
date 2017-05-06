@@ -262,6 +262,7 @@ places (
     place_id   SERIAL        PRIMARY KEY,
     latitude   DECIMAL       NOT NULL,
     longitude  DECIMAL       NOT NULL,
+    name       VARCHAR(100)  NOT NULL,
     country    VARCHAR(2)    NOT NULL,
     iata_code  VARCHAR(3)
 );
