@@ -293,7 +293,7 @@ VALUES
 	('BJM', 'BI', -3.361378, 29.359878, 'Bujumbura International Airport'),
 	('BJR', 'ET', 11.574209, 37.361353, 'Bahir Dar Airport'),
 	('BJT', 'LK', 6.418918, 80.005979, ''),
-	('BJX', 'MX', 21.125008, -101.685960, ''),
+	('BJX', 'MX', 21.125008, -101.685960, 'Del Bajio International Airport'),
 	('BJZ', 'ES', 38.879450, -6.970654, 'Badajoz Airport'),
 	('BKC', 'US', 65.979722, -161.123055, 'Buckland Airport'),
 	('BKG', 'US', 36.643673, -93.218514, 'Branson LLC'), 
