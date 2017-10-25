@@ -17,7 +17,7 @@ import (
 
 func main() {
 	var (
-		dbPath = flag.String("db", "postgres://localhost/transitdb?sslmode=disable", "db location")
+		dbPath = flag.String("db", os.Getenv("DB"), "db location")
 		port   = flag.Int("port", 5030, "http port")
 	)
 	flag.Parse()
