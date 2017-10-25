@@ -1,7 +1,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/go'
-  args: ['install', 'bitbucket.org/maxhawkins/transitdb/cmd/transitdb']
-  env: ['PROJECT_ROOT=bitbucket.org/maxhawkins/transitdb', 'CGO_ENABLED=0']
+  args: ['install', 'github.com/maxhawkins/transitdb/cmd/transitdb']
+  env: ['PROJECT_ROOT=github.com/maxhawkins/transitdb', 'CGO_ENABLED=0']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/transitdb:latest', '--tag=gcr.io/$PROJECT_ID/transitdb:$COMMIT_SHA', '.']
 images: ['gcr.io/$PROJECT_ID/transitdb:$COMMIT_SHA', 'gcr.io/$PROJECT_ID/transitdb:latest']
