@@ -1,8 +1,7 @@
-FROM golang:1.7
+FROM alpine
 
-COPY . /go/src/github.com/maxhawkins/transitdb
+RUN apk add --no-cache ca-certificates
 
-RUN go get -d -v github.com/maxhawkins/transitdb/...
-RUN go install -v github.com/maxhawkins/transitdb/...
+ADD gopath/bin/transitdb /transitdb
 
-CMD transitdb
+CMD ["/transitdb"]
